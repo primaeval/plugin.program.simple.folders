@@ -307,13 +307,21 @@ def add():
             'path': plugin.url_for('add_addons',media=media),
             'thumbnail': thumbnail,
         })
-    items.append(
-    {
-        'label': "[B]%s[/B]" % "Files",
-        'path': plugin.url_for('files'),
-        'thumbnail':get_icon_path('favourites'),
-        #'context_menu': context_items,
-    })
+    if plugin.get_setting('files.menu') == 'true':
+        items.append(
+        {
+            'label': "[B]%s[/B]" % "Files",
+            'path': plugin.url_for('files'),
+            'thumbnail':get_icon_path('folders'),
+            #'context_menu': context_items,
+        })
+        items.append(
+        {
+            'label': "[B]%s[/B]" % "Browse",
+            'path': plugin.url_for('browse'),
+            'thumbnail':get_icon_path('folders'),
+            #'context_menu': context_items,
+        })
     items.append(
     {
         'label': "[B]%s[/B]" % "Favourites",
@@ -331,8 +339,54 @@ def add():
 
     return items
 
+@plugin.route('/files_folder/<where>')
+def files_folder(where):
+    urls = plugin.get_storage('urls')
+    dirs, files = xbmcvfs.listdir(where)
+    items = []
+    for d in dirs:
+        path = "%s/%s" % (where,d)
+        context_items = []
+        if path in urls:
+            context_items.append(("[COLOR yellow][B]%s[/B][/COLOR] " % 'Remove', 'XBMC.RunPlugin(%s)' % (plugin.url_for(remove_url, path=path))))
+        else:
+            id = "favourites"
+            context_items.append(("[COLOR yellow][B]%s[/B][/COLOR] " % 'Add', 'XBMC.RunPlugin(%s)' % (plugin.url_for(add_url, id=id, label=d, path=path, thumbnail=get_icon_path('folder')))))
+        items.append(
+        {
+            'label': "[B]%s[/B]" % d,
+            'path': plugin.url_for('files_folder',where=path),
+            'thumbnail':get_icon_path('folder'),
+            'context_menu': context_items,
+        })
+    for f in files:
+        path = "%s/%s" % (where,f)
+        context_items = []
+        if path in urls:
+            context_items.append(("[COLOR yellow][B]%s[/B][/COLOR] " % 'Remove', 'XBMC.RunPlugin(%s)' % (plugin.url_for(remove_url, path=path))))
+        else:
+            id = "favourites"
+            context_items.append(("[COLOR yellow][B]%s[/B][/COLOR] " % 'Add', 'XBMC.RunPlugin(%s)' % (plugin.url_for(add_url, id=id, label=f, path=path, thumbnail=get_icon_path('file')))))
+        items.append(
+        {
+            'label': f,
+            'path': plugin.url_for('play',url=path),
+            'thumbnail':get_icon_path('file'),
+            'context_menu': context_items,
+        })
+    return items
+
 @plugin.route('/files')
 def files():
+    urls = plugin.get_storage('urls')
+    d = xbmcgui.Dialog()
+    where = d.input('Enter Location (eg c:\ http:// smb:// nfs:// special://)')
+    if not where:
+        return
+    return files_folder(where)
+
+@plugin.route('/browse')
+def browse():
     urls = plugin.get_storage('urls')
     d = xbmcgui.Dialog()
     where = d.input('Enter Location (eg c:\ http:// smb:// nfs:// special://)')
@@ -342,25 +396,35 @@ def files():
     items = []
     for d in dirs:
         path = "%s/%s" % (where,d)
+        context_items = []
+        if path in urls:
+            context_items.append(("[COLOR yellow][B]%s[/B][/COLOR] " % 'Remove', 'XBMC.RunPlugin(%s)' % (plugin.url_for(remove_url, path=path))))
+        else:
+            id = "favourites"
+            context_items.append(("[COLOR yellow][B]%s[/B][/COLOR] " % 'Add', 'XBMC.RunPlugin(%s)' % (plugin.url_for(add_url, id=id, label=d, path=path, thumbnail=get_icon_path('folder')))))
         items.append(
         {
             'label': "[B]%s[/B]" % d,
             'path': path,
             'thumbnail':get_icon_path('folder'),
-            #'context_menu': context_items,
+            'context_menu': context_items,
         })
     for f in files:
         path = "%s/%s" % (where,f)
+        context_items = []
+        if path in urls:
+            context_items.append(("[COLOR yellow][B]%s[/B][/COLOR] " % 'Remove', 'XBMC.RunPlugin(%s)' % (plugin.url_for(remove_url, path=path))))
+        else:
+            id = "favourites"
+            context_items.append(("[COLOR yellow][B]%s[/B][/COLOR] " % 'Add', 'XBMC.RunPlugin(%s)' % (plugin.url_for(add_url, id=id, label=f, path=path, thumbnail=get_icon_path('file')))))
         items.append(
         {
             'label': f,
             'path': plugin.url_for('play',url=path),
             'thumbnail':get_icon_path('file'),
-            #'context_menu': context_items,
+            'context_menu': context_items,
         })
     return items
-
-
 
 @plugin.route('/')
 def index():

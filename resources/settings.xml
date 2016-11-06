@@ -7,5 +7,7 @@
 <setting type="lsep" label="Display"/>
 <setting id="view.type" label="View Type" type="select" default="default" values="default|files|songs|artists|albums|movies|tvshows|episodes|musicvideos"/>
 <setting id="user.icons" label="User Icons" type="bool" default="false" />
+<setting type="lsep" label="Advanced"/>
+<setting id="files.menu" label="Show Files and Browse in Add Menu" type="bool" default="false" />
 </category>
 </settings>
