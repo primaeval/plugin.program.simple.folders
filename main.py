@@ -389,7 +389,7 @@ def folder(folder):
                 'thumbnail':thumbnail,
                 'context_menu': context_items,
             })
-    for url in urls:
+    for url in sorted(urls, key=lambda x: labels[x]):
         if url in folder_urls:
             f = folder_urls[url]
             if f != folder:
@@ -400,7 +400,7 @@ def folder(folder):
         context_items = []
         context_items.append(("[COLOR yellow][B]%s[/B][/COLOR] " % 'Remove', 'XBMC.RunPlugin(%s)' % (plugin.url_for(remove_url, path=path))))
         context_items.append(("[COLOR yellow][B]%s[/B][/COLOR] " % 'Change Image', 'XBMC.RunPlugin(%s)' % (plugin.url_for(change_image, path=path))))
-        if path.endswith('/'):
+        if path.endswith('/') or path.startswith('plugin://'):
             play_path = path
         else:
             play_path = plugin.url_for('play',url=url)
