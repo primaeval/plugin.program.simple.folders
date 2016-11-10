@@ -335,6 +335,7 @@ def add():
 
 @plugin.route('/files_folder/<where>')
 def files_folder(where):
+    where = where.strip('\/')
     urls = plugin.get_storage('urls')
     dirs, files = xbmcvfs.listdir(where)
     items = []
@@ -387,10 +388,11 @@ def browse():
     where = d.input('Enter Location (eg c:\ http:// smb:// nfs:// special://)')
     if not where:
         return
+    where = where.rstrip('\/')
     dirs, files = xbmcvfs.listdir(where)
     items = []
     for d in dirs:
-        path = "%s%s/" % (where,d)
+        path = "%s/%s/" % (where,d)
         context_items = []
         if path in urls:
             context_items.append(("[COLOR yellow][B]%s[/B][/COLOR] " % 'Remove', 'XBMC.RunPlugin(%s)' % (plugin.url_for(remove_url, path=path))))
@@ -537,7 +539,6 @@ def import_urls():
     f = xbmcvfs.File(file_name,"rb")
 
     data = json.loads(f.read())
-    log(data)
     for d in data["folders"]:
         folders[d["folder"]] = d["thumbnail"]
 
@@ -569,14 +570,12 @@ def export_urls():
     favourite_folders = []
     for folder in folders:
         thumbnail = folders.get(folder,'')
-        log((folder,thumbnail))
         favourite_folders.append({"folder":folder,"thumbnail":thumbnail})
     favourites = []
     for url in sorted(urls, key=lambda x: labels[x]):
         folder = folder_urls.get(url,'')
         label = labels[url]
         thumbnail = thumbnails[url]
-        log((label,url,folder,thumbnail))
         favourites.append({"label":label,"url":url,"folder":folder,"thumbnail":thumbnail})
     data = {"folders":favourite_folders,"favourites":favourites}
     s = json.dumps(data,indent=2)
