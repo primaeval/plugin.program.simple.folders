@@ -38,6 +38,10 @@ def remove_formatting(label):
 
 @plugin.route('/play/<url>')
 def play(url):
+    head,tail = url.split('://')
+    if tail:
+        tail = re.sub('//','/',tail)
+        url = "%s://%s" % (head,tail)
     xbmc.executebuiltin('PlayMedia(%s)' % url)
 
 @plugin.route('/execute/<url>')
@@ -89,7 +93,6 @@ def add_url(id,label,path,thumbnail):
         if result > 0:
             folder_urls = plugin.get_storage('folder_urls')
             folder_urls[path] = names[result]
-    xbmc.executebuiltin('Container.Refresh')
 
 @plugin.route('/remove_url/<path>')
 def remove_url(path):
