@@ -1,5 +1,5 @@
 <settings>
-<category label="All">
+<category label="Appearance">
 <setting type="lsep" label="Kodi Favourites"/>
 <setting id="kodi.favourites" label="Include All Kodi Favourites" type="bool" default="true" />
 <setting type="lsep" label="Sorting"/>
@@ -7,7 +7,11 @@
 <setting type="lsep" label="Display"/>
 <setting id="view.type" label="View Type" type="select" default="default" values="default|files|songs|artists|albums|movies|tvshows|episodes|musicvideos"/>
 <setting id="user.icons" label="User Icons" type="bool" default="false" />
-<setting type="lsep" label="Advanced"/>
+</category>
+<category label="Advanced">
 <setting id="files.menu" label="Show Files and Browse in Add Menu" type="bool" default="false" />
+<setting type="lsep" label="Import/Export"/>
+<setting id="import.export" label="Enable Import/Export in Add Menu" type="bool" default="false" />
+<setting id="import.clear" label="Reset Everything on Import" type="bool" default="false" />
 </category>
 </settings>

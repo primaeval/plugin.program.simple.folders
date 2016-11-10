@@ -11,6 +11,7 @@ import sqlite3
 import time
 import xbmc,xbmcaddon,xbmcvfs,xbmcgui
 import xbmcplugin
+import json
 
 from types import *
 
@@ -50,7 +51,7 @@ def add_folder():
     if not result:
         return
     folders = plugin.get_storage('folders')
-    folders[result] = get_icon_path('settings')
+    folders[result] = get_icon_path('folder')
     xbmc.executebuiltin('Container.Refresh')
 
 @plugin.route('/remove_folder/<folder>')
@@ -100,30 +101,6 @@ def remove_url(path):
     del thumbnails[path]
     xbmc.executebuiltin('Container.Refresh')
 
-@plugin.route('/add_folder1/<id>/<label>/<path>/<thumbnail>')
-def add_folder1(id,label,path,thumbnail):
-    d = xbmcgui.Dialog()
-    result = d.input("Rename Shortcut",label)
-    if not result:
-        return
-    label = result
-    folders = plugin.get_storage('folders')
-    labels = plugin.get_storage('labels')
-    thumbnails = plugin.get_storage('thumbnails')
-    folders[path] = id
-    labels[path] = label
-    thumbnails[path] = thumbnail
-    xbmc.executebuiltin('Container.Refresh')
-
-@plugin.route('/remove_folder1/<path>')
-def remove_folder1(path):
-    folders = plugin.get_storage('folders')
-    labels = plugin.get_storage('labels')
-    thumbnails = plugin.get_storage('thumbnails')
-    del folders[path]
-    del labels[path]
-    del thumbnails[path]
-    xbmc.executebuiltin('Container.Refresh')
 
 @plugin.route('/change_image/<path>')
 def change_image(path):
@@ -312,14 +289,14 @@ def add():
         {
             'label': "[B]%s[/B]" % "Files",
             'path': plugin.url_for('files'),
-            'thumbnail':get_icon_path('folders'),
+            'thumbnail':get_icon_path('folder'),
             #'context_menu': context_items,
         })
         items.append(
         {
             'label': "[B]%s[/B]" % "Browse",
             'path': plugin.url_for('browse'),
-            'thumbnail':get_icon_path('folders'),
+            'thumbnail':get_icon_path('folder'),
             #'context_menu': context_items,
         })
     items.append(
@@ -336,7 +313,21 @@ def add():
         'thumbnail':get_icon_path('settings'),
         #'context_menu': context_items,
     })
-
+    if plugin.get_setting('import.export') == 'true':
+        items.append(
+        {
+            'label': "[B]%s[/B]" % "Export",
+            'path': plugin.url_for('export_urls'),
+            'thumbnail':get_icon_path('settings'),
+            #'context_menu': context_items,
+        })
+        items.append(
+        {
+            'label': "[B]%s[/B]" % "Import",
+            'path': plugin.url_for('import_urls'),
+            'thumbnail':get_icon_path('settings'),
+            #'context_menu': context_items,
+        })
     return items
 
 @plugin.route('/files_folder/<where>')
@@ -456,8 +447,10 @@ def folder(folder):
     for url in sorted(urls, key=lambda x: labels[x]):
         if url in folder_urls:
             f = folder_urls[url]
-            if f != folder:
-                continue
+        else:
+            f = None
+        if f != folder:
+            continue
         label = labels[url]
         thumbnail = thumbnails[url]
         path = url
@@ -518,6 +511,72 @@ def folder(folder):
         plugin.set_content(view)
 
     return items
+
+@plugin.route('/import_urls')
+def import_urls():
+    folders = plugin.get_storage('folders')
+    folder_urls = plugin.get_storage('folder_urls')
+    urls = plugin.get_storage('urls')
+    labels = plugin.get_storage('labels')
+    thumbnails = plugin.get_storage('thumbnails')
+
+    if plugin.get_setting('import.clear') == 'true':
+        folders.clear()
+        folder_urls.clear()
+        urls.clear()
+        labels.clear()
+        thumbnails.clear()
+
+    addon_name = xbmcaddon.Addon().getAddonInfo('id')
+    file_name = "special://profile/addon_data/%s/favourites.json" % (addon_name)
+    f = xbmcvfs.File(file_name,"rb")
+
+    data = json.loads(f.read())
+    log(data)
+    for d in data["folders"]:
+        folders[d["folder"]] = d["thumbnail"]
+
+    for d in data["favourites"]:
+        url = d["url"]
+        folder = d["folder"]
+        label = d["label"]
+        thumbnail = d["thumbnail"]
+        id = '' #TODO
+        urls[url] = id
+        if folder:
+            folder_urls[url] = folder
+        labels[url] = label
+        thumbnails[url] = thumbnail
+
+
+@plugin.route('/export_urls')
+def export_urls():
+    folders = plugin.get_storage('folders')
+    folder_urls = plugin.get_storage('folder_urls')
+    urls = plugin.get_storage('urls')
+    labels = plugin.get_storage('labels')
+    thumbnails = plugin.get_storage('thumbnails')
+
+    addon_name = xbmcaddon.Addon().getAddonInfo('id')
+    file_name = "special://profile/addon_data/%s/favourites.json" % (addon_name)
+    f = xbmcvfs.File(file_name,"wb")
+
+    favourite_folders = []
+    for folder in folders:
+        thumbnail = folders.get(folder,'')
+        log((folder,thumbnail))
+        favourite_folders.append({"folder":folder,"thumbnail":thumbnail})
+    favourites = []
+    for url in sorted(urls, key=lambda x: labels[x]):
+        folder = folder_urls.get(url,'')
+        label = labels[url]
+        thumbnail = thumbnails[url]
+        log((label,url,folder,thumbnail))
+        favourites.append({"label":label,"url":url,"folder":folder,"thumbnail":thumbnail})
+    data = {"folders":favourite_folders,"favourites":favourites}
+    s = json.dumps(data,indent=2)
+    f.write(s)
+
 
 if __name__ == '__main__':
     plugin.run()
