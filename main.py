@@ -38,10 +38,10 @@ def remove_formatting(label):
 
 @plugin.route('/play/<url>')
 def play(url):
-    head,tail = url.split('://')
-    if tail:
-        tail = re.sub('//','/',tail)
-        url = "%s://%s" % (head,tail)
+    head_tail = url.split('://')
+    if len(head_tail) > 1:
+        tail = re.sub('//','/',head_tail[1])
+        url = "%s://%s" % (head_tail[0],head_tail[1])
     xbmc.executebuiltin('PlayMedia(%s)' % url)
 
 @plugin.route('/execute/<url>')
@@ -389,7 +389,7 @@ def browse():
     dirs, files = xbmcvfs.listdir(where)
     items = []
     for d in dirs:
-        path = "%s/%s" % (where,d)
+        path = "%s%s/" % (where,d)
         context_items = []
         if path in urls:
             context_items.append(("[COLOR yellow][B]%s[/B][/COLOR] " % 'Remove', 'XBMC.RunPlugin(%s)' % (plugin.url_for(remove_url, path=path))))
