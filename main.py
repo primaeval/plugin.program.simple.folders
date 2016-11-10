@@ -339,7 +339,7 @@ def files_folder(where):
     dirs, files = xbmcvfs.listdir(where)
     items = []
     for d in dirs:
-        path = "%s/%s" % (where,d)
+        path = "%s/%s/" % (where,d)
         context_items = []
         if path in urls:
             context_items.append(("[COLOR yellow][B]%s[/B][/COLOR] " % 'Remove', 'XBMC.RunPlugin(%s)' % (plugin.url_for(remove_url, path=path))))
@@ -360,6 +360,7 @@ def files_folder(where):
             context_items.append(("[COLOR yellow][B]%s[/B][/COLOR] " % 'Remove', 'XBMC.RunPlugin(%s)' % (plugin.url_for(remove_url, path=path))))
         else:
             id = "favourites"
+            path = plugin.url_for('play',url=path)
             context_items.append(("[COLOR yellow][B]%s[/B][/COLOR] " % 'Add', 'XBMC.RunPlugin(%s)' % (plugin.url_for(add_url, id=id, label=f, path=path, thumbnail=get_icon_path('file')))))
         items.append(
         {
@@ -410,6 +411,7 @@ def browse():
             context_items.append(("[COLOR yellow][B]%s[/B][/COLOR] " % 'Remove', 'XBMC.RunPlugin(%s)' % (plugin.url_for(remove_url, path=path))))
         else:
             id = "favourites"
+            path = plugin.url_for('play',url=path)
             context_items.append(("[COLOR yellow][B]%s[/B][/COLOR] " % 'Add', 'XBMC.RunPlugin(%s)' % (plugin.url_for(add_url, id=id, label=f, path=path, thumbnail=get_icon_path('file')))))
         items.append(
         {
