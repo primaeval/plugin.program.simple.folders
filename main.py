@@ -41,8 +41,8 @@ def play(url):
     head_tail = url.split('://')
     if len(head_tail) > 1:
         tail = re.sub('//','/',head_tail[1])
-        url = "%s://%s" % (head_tail[0],head_tail[1])
-    xbmc.executebuiltin('PlayMedia(%s)' % url)
+        url = "%s://%s" % (head_tail[0],tail)
+    xbmc.executebuiltin('PlayMedia("%s")' % url)
 
 @plugin.route('/execute/<url>')
 def execute(url):
