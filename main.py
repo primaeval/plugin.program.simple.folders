@@ -232,7 +232,7 @@ def favourites():
     favourites = re.findall("<favourite.*?</favourite>",data)
     items = []
     for fav in favourites:
-        fav = re.sub('&quot;','',fav)
+        fav = re.sub('&quot;','"',fav)
         url = ''
         thumbnail = ''
         match = re.search('<favourite name="(.*?)" thumb="(.*?)">(.*?)<',fav)
@@ -482,7 +482,7 @@ def folder(folder):
             data = f.read()
             favourites = re.findall("<favourite.*?</favourite>",data)
             for fav in favourites:
-                fav = re.sub('&quot;','',fav)
+                fav = re.sub('&quot;','"',fav)
                 url = ''
                 match = re.search('<favourite name="(.*?)" thumb="(.*?)">(.*?)<',fav)
                 if match:
