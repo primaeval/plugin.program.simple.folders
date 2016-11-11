@@ -9,7 +9,7 @@
 <setting id="user.icons" label="User Icons" type="bool" default="false" />
 </category>
 <category label="Advanced">
-<setting id="files.menu" label="Show Files and Browse in Add Menu" type="bool" default="false" />
+<!--<setting id="files.menu" label="Show Files and Browse in Add Menu" type="bool" default="false" />-->
 <setting type="lsep" label="Import/Export"/>
 <setting id="import.export" label="Enable Import/Export in Add Menu" type="bool" default="false" />
 <setting id="import.clear" label="Reset Everything on Import" type="bool" default="false" />

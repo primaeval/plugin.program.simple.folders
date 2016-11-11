@@ -327,6 +327,7 @@ def add():
             'path': plugin.url_for('add_addons',media=media),
             'thumbnail': thumbnail,
         })
+    '''        
     if plugin.get_setting('files.menu') == 'true':
         items.append(
         {
@@ -342,6 +343,7 @@ def add():
             'thumbnail':get_icon_path('folder'),
             #'context_menu': context_items,
         })
+
         items.append(
         {
             'label': "[B]%s[/B]" % "Files",
@@ -356,6 +358,7 @@ def add():
             'thumbnail':get_icon_path('folder'),
             #'context_menu': context_items,
         })
+    '''
     items.append(
     {
         'label': "[B]%s[/B]" % "Favourites",
