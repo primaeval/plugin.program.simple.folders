@@ -263,6 +263,44 @@ def favourites():
             })
     return items
 
+@plugin.route('/sources/<mode>')
+def sources(mode):
+    urls = plugin.get_storage('urls')
+
+    f = xbmcvfs.File("special://profile/sources.xml","rb")
+    if not f:
+        return
+    data = f.read()
+    favourites = re.findall("<source.*?</source>",data, flags=(re.DOTALL | re.MULTILINE))
+    items = []
+    for fav in favourites:
+        fav = re.sub('&quot;','"',fav)
+        url = ''
+        thumbnail = ''
+        match = re.search('<name>(.*?)</name>.*?<path pathversion="1">(.*?)</path>',fav, flags=(re.DOTALL | re.MULTILINE))
+        if match:
+            label = match.group(1)
+            url = match.group(2)
+        if url:
+            context_items = []
+            if mode == "file":
+                path = plugin.url_for('files_folder',where=url)
+            elif mode == "type":
+                path = url
+            if url in urls:
+                context_items.append(("[COLOR yellow][B]%s[/B][/COLOR] " % 'Remove', 'XBMC.RunPlugin(%s)' % (plugin.url_for(remove_url, path=path))))
+            else:
+                id = "favourites"
+                context_items.append(("[COLOR yellow][B]%s[/B][/COLOR] " % 'Add', 'XBMC.RunPlugin(%s)' % (plugin.url_for(add_url, id=id, label=label.encode("utf8"), path=path, thumbnail=thumbnail))))
+            items.append(
+            {
+                'label': label,
+                'path': path,
+                'thumbnail':get_icon_path('folder'),
+                'context_menu': context_items,
+            })
+    return items
+
 @plugin.route('/add')
 def add():
     items = []
@@ -288,6 +326,20 @@ def add():
             'thumbnail': thumbnail,
         })
     if plugin.get_setting('files.menu') == 'true':
+        items.append(
+        {
+            'label': "[B]%s[/B]" % "Sources (File Mode)",
+            'path': plugin.url_for('sources', mode="file"),
+            'thumbnail':get_icon_path('folder'),
+            #'context_menu': context_items,
+        })
+        items.append(
+        {
+            'label': "[B]%s[/B]" % "Sources (Type Mode)",
+            'path': plugin.url_for('sources', mode="type"),
+            'thumbnail':get_icon_path('folder'),
+            #'context_menu': context_items,
+        })
         items.append(
         {
             'label': "[B]%s[/B]" % "Files",
@@ -337,7 +389,7 @@ def add():
 def files_folder(where):
     where = where.strip('\/')
     urls = plugin.get_storage('urls')
-    dirs, files = xbmcvfs.listdir(where)
+    dirs, files = xbmcvfs.listdir(where+"/")
     items = []
     for d in dirs:
         path = "%s/%s/" % (where,d)
@@ -383,12 +435,16 @@ def files():
 
 @plugin.route('/browse')
 def browse():
-    urls = plugin.get_storage('urls')
     d = xbmcgui.Dialog()
     where = d.input('Enter Location (eg c:\ http:// smb:// nfs:// special://)')
     if not where:
         return
+    browse_folder(where)
+
+@plugin.route('/browse_folder/<where>')
+def browse_folder(where):
     where = where.rstrip('\/')
+    urls = plugin.get_storage('urls')
     dirs, files = xbmcvfs.listdir(where)
     items = []
     for d in dirs:
