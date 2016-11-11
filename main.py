@@ -271,34 +271,36 @@ def sources(mode):
     if not f:
         return
     data = f.read()
-    favourites = re.findall("<source.*?</source>",data, flags=(re.DOTALL | re.MULTILINE))
     items = []
-    for fav in favourites:
-        fav = re.sub('&quot;','"',fav)
-        url = ''
-        thumbnail = ''
-        match = re.search('<name>(.*?)</name>.*?<path pathversion="1">(.*?)</path>',fav, flags=(re.DOTALL | re.MULTILINE))
-        if match:
-            label = match.group(1)
-            url = match.group(2)
-        if url:
-            context_items = []
-            if mode == "file":
-                path = plugin.url_for('files_folder',where=url)
-            elif mode == "type":
-                path = url
-            if url in urls:
-                context_items.append(("[COLOR yellow][B]%s[/B][/COLOR] " % 'Remove', 'XBMC.RunPlugin(%s)' % (plugin.url_for(remove_url, path=path))))
-            else:
-                id = "favourites"
-                context_items.append(("[COLOR yellow][B]%s[/B][/COLOR] " % 'Add', 'XBMC.RunPlugin(%s)' % (plugin.url_for(add_url, id=id, label=label.encode("utf8"), path=path, thumbnail=thumbnail))))
-            items.append(
-            {
-                'label': label,
-                'path': path,
-                'thumbnail':get_icon_path('folder'),
-                'context_menu': context_items,
-            })
+    for type in ["programs","video","music","pictures","files"]:
+        group = re.search("<%s.*?</%s>" % (type,type),data, flags=(re.DOTALL | re.MULTILINE))
+        favourites = re.findall("<source.*?</source>",group.group(0), flags=(re.DOTALL | re.MULTILINE))
+        for fav in favourites:
+            fav = re.sub('&quot;','"',fav)
+            url = ''
+            thumbnail = ''
+            match = re.search('<name>(.*?)</name>.*?<path pathversion="1">(.*?)</path>',fav, flags=(re.DOTALL | re.MULTILINE))
+            if match:
+                label = match.group(1)
+                url = match.group(2)
+            if url:
+                context_items = []
+                if mode == "file":
+                    path = plugin.url_for('files_folder',where=url)
+                elif mode == "type":
+                    path = url
+                if url in urls:
+                    context_items.append(("[COLOR yellow][B]%s[/B][/COLOR] " % 'Remove', 'XBMC.RunPlugin(%s)' % (plugin.url_for(remove_url, path=path))))
+                else:
+                    id = "favourites"
+                    context_items.append(("[COLOR yellow][B]%s[/B][/COLOR] " % 'Add', 'XBMC.RunPlugin(%s)' % (plugin.url_for(add_url, id=id, label=label.encode("utf8"), path=path, thumbnail=thumbnail))))
+                items.append(
+                {
+                    'label': "[%s] %s" % (type,label),
+                    'path': path,
+                    'thumbnail':get_icon_path('folder'),
+                    'context_menu': context_items,
+                })
     return items
 
 @plugin.route('/add')
