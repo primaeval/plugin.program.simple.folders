@@ -1,4 +1,9 @@
 <settings>
+<category label="Upgrade">
+<setting type="lsep" label="This addon will be removed soon as well as the Context Menu addons."/>
+<setting type="lsep" label="I would recommend starting again in Simple Favourites. Sorry. Thanks for beta testing."/>
+<setting label="Export to Simple Favourites" type="action" action="XBMC.RunPlugin(plugin://plugin.program.simple.folders/upgrade)"/>
+</category>
 <category label="Appearance">
 <setting type="lsep" label="Kodi Favourites"/>
 <setting id="kodi.favourites" label="Include All Kodi Favourites" type="bool" default="true" />

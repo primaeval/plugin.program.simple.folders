@@ -327,7 +327,7 @@ def add():
             'path': plugin.url_for('add_addons',media=media),
             'thumbnail': thumbnail,
         })
-    '''        
+    '''
     if plugin.get_setting('files.menu') == 'true':
         items.append(
         {
@@ -641,6 +641,62 @@ def export_urls():
     data = {"folders":favourite_folders,"favourites":favourites}
     s = json.dumps(data,indent=2)
     f.write(s)
+
+def escape( str ):
+    str = str.replace("&", "&amp;")
+    str = str.replace("<", "&lt;")
+    str = str.replace(">", "&gt;")
+    str = str.replace("\"", "&quot;")
+    return str
+
+def unescape( str ):
+    str = str.replace("&lt;","<")
+    str = str.replace("&gt;",">")
+    str = str.replace("&quot;","\"")
+    str = str.replace("&amp;","&")
+    return str
+
+@plugin.route('/add_favourite/<favourites_file>/<name>/<url>/<thumbnail>')
+def add_favourite(favourites_file,name,url,thumbnail):
+    f = xbmcvfs.File(favourites_file,"rb")
+    data = f.read()
+    f.close()
+    if not data:
+        data = '<favourites>\n</favourites>'
+    fav = '    <favourite name="%s" thumb="%s">%s</favourite>\n</favourites>' % (name,thumbnail,url)
+    data = data.replace('</favourites>',fav)
+    f = xbmcvfs.File(favourites_file,"wb")
+    f.write(data)
+    f.close()
+
+@plugin.route('/upgrade')
+def upgrade():
+    folders = plugin.get_storage('folders')
+    folder_urls = plugin.get_storage('folder_urls')
+    urls = plugin.get_storage('urls')
+    labels = plugin.get_storage('labels')
+    thumbnails = plugin.get_storage('thumbnails')
+
+    output_folder = "special://profile/addon_data/plugin.program.simple.favourites/folders"
+    xbmcvfs.mkdirs(output_folder)
+
+    for folder in folders:
+        thumbnail = folders.get(folder,'')
+        path = "%s/%s/" % (output_folder,folder)
+        xbmcvfs.mkdirs(path)
+        xbmcvfs.File("%sicon.txt","wb").write(thumbnail)
+
+    for url in sorted(urls, key=lambda x: labels[x]):
+        folder = folder_urls.get(url,'')
+        label = labels[url]
+        thumbnail = thumbnails[url]
+        if folder:
+            path = "%s/%s" % (output_folder,folder)
+        else:
+            path = output_folder
+        favourites_file = "%s/favourites.xml" % path
+        play_url = escape('ActivateWindow(10025,"%s")' % (url))
+        add_favourite(favourites_file,label,play_url,thumbnail)
 
 
 if __name__ == '__main__':
